@@ -1,37 +1,66 @@
 #include <GLFW/glfw3.h>
+#include <iostream>
+#include "Rocket.h"
 
-int main(void)
-{
-    GLFWwindow* window;
+const GLint WIDTH = 1280, HEIGHT = 720;
 
-    /* Initialize the library */
-    if (!glfwInit())
-        return -1;
+int main() {
+	//Ininialize GLFW, if GLFW initialize fail, exit the program
+	if (!glfwInit()) {
+		std::cerr << "Fail to Initialize " << std::endl;
+		return -1;
 
-    /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
-    if (!window)
-    {
-        glfwTerminate();
-        return -1;
-    }
-    //hello world
-    /* Make the window's context current */
+	}
+	
+	// create a GLFW window
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Rocket Simulation", nullptr, nullptr);
+	if (!window) {
+		std::cerr << "GLFW error" << std::endl;
+		glfwTerminate();
+		return -1;
+	}
+
     glfwMakeContextCurrent(window);
 
-    /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window))
-    {
-        /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
+    // Create an instance of the Rocket class
+    Rocket rocket;
 
-        /* Swap front and back buffers */
-        glfwSwapBuffers(window);
+    // Time handling variables for deltaTime calculation
+    float previousTime = glfwGetTime();
 
-        /* Poll for and process events */
+    // Main loop
+    while (!glfwWindowShouldClose(window)) {
+        // Handle input events
         glfwPollEvents();
+
+        // Calculate deltaTime for smooth physics updates
+        float currentTime = glfwGetTime();
+        float deltaTime = currentTime - previousTime;
+        previousTime = currentTime;
+
+        // Apply thrust when the spacebar is pressed
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+            rocket.applyThrust(1.0f);  // Apply upward thrust
+        }
+        else {
+            rocket.applyThrust(0.0f);  // No thrust when the spacebar is not pressed
+        }
+
+        // Update the rocket's physics
+        rocket.update(deltaTime);
+
+        // Render code would go here (we will add 3D rendering later)
+
+        // Clear the screen
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Swap buffers to display the current frame
+        glfwSwapBuffers(window);
     }
 
+    // Clean up and terminate
+    glfwDestroyWindow(window);
     glfwTerminate();
+
     return 0;
 }
