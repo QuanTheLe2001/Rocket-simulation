@@ -4,6 +4,7 @@
 #include "imgui_impl_opengl3.h"
 #include <iostream>
 #include <string>
+#include <array>
 #include "Rocket.h"
 
 const GLint WIDTH = 1280, HEIGHT = 720;
@@ -11,7 +12,7 @@ const GLint WIDTH = 1280, HEIGHT = 720;
 float fuelLevel = 100.0f;  // Full fuel (100%)
 float altitude = 0.0f;     // Starting altitude
 float speed = 0.0f;        // Rocket speed (m/s)
-float thrustLevel = 50.0f; // Thrust level (0 to 100%)
+std::array<float, 4> thrustLevels = { 50.0f, 50.0f, 50.0f, 50.0f }; // Thrust level for 4 engines (0 to 100%)
 
 bool isLiftoffInitiated = false;
 bool isLiftoffComplete = false;
@@ -25,7 +26,7 @@ int main() {
         return -1;
     }
 
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Rocket Simulation with Countdown and Dynamic UI", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Rocket Simulation with Multiple Engines", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -60,11 +61,11 @@ int main() {
 
         // Apply thrust and update rocket physics if liftoff is complete
         if (isLiftoffComplete && fuelLevel > 0.0f && rocket.position.y < 10000.0f) {
-            rocket.applyThrust(thrustLevel, deltaTime);
+            rocket.applyThrust(thrustLevels, deltaTime);
             rocket.update(deltaTime);
 
             // Update fuel level based on thrust
-            fuelLevel -= thrustLevel * 0.05f * deltaTime;
+            fuelLevel -= (thrustLevels[0] + thrustLevels[1] + thrustLevels[2] + thrustLevels[3]) * 0.05f * deltaTime;
             if (fuelLevel < 0.0f) fuelLevel = 0.0f;
 
             // Update altitude and speed
@@ -104,19 +105,20 @@ int main() {
             }
         }
 
-        // 2. Left Column for Engine Status and Fuel Tanks
+        // 2. Left Column for Engine Status and Thrust Controls
         ImGui::Columns(3, "columns", false);
 
         // Engine Stats (Column 1)
         ImGui::BeginChild("Engines", ImVec2(0, 400), true);
-        ImGui::Text("Engine #1");
-        ImGui::ProgressBar(thrustLevel / 100.0f, ImVec2(0.0f, 0.0f), "Throttle: 72%");
-        ImGui::ProgressBar(thrustLevel / 100.0f, ImVec2(0.0f, 0.0f), "Thrust: 663.3N");
-        ImGui::Separator();
+        for (int i = 0; i < 4; i++) {
+            std::string engineLabel = "Engine #" + std::to_string(i + 1);
+            std::string thrustLabel = "Throttle: " + std::to_string(static_cast<int>(thrustLevels[i])) + "%";
 
-        ImGui::Text("Engine #2");
-        ImGui::ProgressBar(thrustLevel / 100.0f, ImVec2(0.0f, 0.0f), "Throttle: 72%");
-        ImGui::ProgressBar(thrustLevel / 100.0f, ImVec2(0.0f, 0.0f), "Thrust: 663.3N");
+            ImGui::Text("%s", engineLabel.c_str());
+            ImGui::SliderFloat(("Thrust " + std::to_string(i + 1)).c_str(), &thrustLevels[i], 0.0f, 100.0f);
+            ImGui::ProgressBar(thrustLevels[i] / 100.0f, ImVec2(0.0f, 0.0f), thrustLabel.c_str());
+            ImGui::Separator();
+        }
         ImGui::EndChild();
 
         ImGui::NextColumn();
@@ -129,7 +131,7 @@ int main() {
         std::string loxLabel = "LOX: " + std::to_string(fuelLevel) + "%";
         std::string rp1Label = "RP-1: " + std::to_string(fuelLevel) + "%";
 
-        // Progress bars for fuel tanks (continuously rendered)
+        // Progress bars for fuel tanks
         ImGui::ProgressBar(fuelLevel / 100.0f, ImVec2(0.0f, 0.0f), loxLabel.c_str());
         ImGui::ProgressBar(fuelLevel / 100.0f, ImVec2(0.0f, 0.0f), rp1Label.c_str());
 
@@ -143,7 +145,7 @@ int main() {
         ImGui::Text("Flight Time: %.2f seconds", currentTime);
         ImGui::Text("Speed: %.2f m/s", speed);
         ImGui::Text("Altitude: %.2f m", altitude);
-        ImGui::Text("Thrust Level: %.1f%%", thrustLevel);
+        ImGui::Text("Total Thrust Level: %.1f%%", thrustLevels[0] + thrustLevels[1] + thrustLevels[2] + thrustLevels[3]);
 
         // Liftoff countdown display
         if (isLiftoffInitiated && !isLiftoffComplete) {
