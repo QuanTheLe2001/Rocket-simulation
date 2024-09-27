@@ -2,29 +2,28 @@
 
 Rocket::Rocket()
     :position(0.0f, 0.0f, 0.0f),  // Start at origin (x=0, y=0, z=0)
-     velocity(0.0f, 0.0f, 0.0f),  // No initial movement
-     fuel(100.0f),                // Start with full fuel
-     thrust(0.0f),                // No thrust initially
-     gravity(-9.81f)              // Gravity pulling downward along y-axis
+    velocity(0.0f, 0.0f, 0.0f),  // No initial movement
+    fuel(100.0f),                // Start with full fuel
+    gravity(-9.81f)              // Gravity pulling downward along y-axis
 {}
 
-void Rocket::applyThrust(float thrustValue) {
+void Rocket::applyThrust(float thrustValue, float deltaTime) {
     if (fuel > 0.0f) {
-        thrust = thrustValue;
-        velocity.y += thrustValue;
-        fuel -= thrustValue * 0.1f;
-
+        // Apply thrust to increase the rocket's upward velocity (along y-axis)
+        velocity.y += thrustValue * deltaTime;
+        // Decrease fuel based on the thrust value
+        fuel -= thrustValue * 0.1f * deltaTime;
+        if (fuel < 0.0f) {
+            fuel = 0.0f;  // Ensure fuel doesn't drop below 0
+        }
     }
 }
 
 void Rocket::update(float deltaTime) {
+    // Apply gravity to the rocket's velocity
     velocity.y += gravity * deltaTime;
+    // Update the rocket's position based on its velocity
     position += velocity * deltaTime;
 
-
-    if (position.y < 0) {
-        position.y = 0;
-        velocity.y = 0;
-
-    }
+    // Prevent the rocket from falling below the ground (y = 
 }
