@@ -11,13 +11,14 @@ public:
     float fuel;          // Rocket's fuel level
     float gravity;       // Gravity constant
 
-    std::array<float, 4> engineThrust; // Thrust for each engine (4 engines)
+    // Thrust levels for 5 engines
+    std::array<float, 5> engineThrust; // Use std::array for thrust values
 
     // Constructor
     Rocket();
 
-    // Apply thrust to the rocket
-    void applyThrust(std::array<float, 4> thrustValues, float deltaTime);
+    // Apply thrust to the rocket, accepting std::array<float, 5>
+    void applyThrust(const std::array<float, 5>& thrustValues, float deltaTime);
 
     // Update the rocket's physics (called every frame)
     void update(float deltaTime);

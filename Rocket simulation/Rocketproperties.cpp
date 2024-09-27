@@ -5,14 +5,15 @@ Rocket::Rocket()
     velocity(0.0f, 0.0f, 0.0f),  // No initial movement
     fuel(100.0f),                // Start with full fuel
     gravity(-9.81f),             // Gravity pulling downward along y-axis
-    engineThrust{ 0.0f, 0.0f, 0.0f, 0.0f } // Initialize engine thrusts to 0
+    engineThrust{ 0.0f, 0.0f, 0.0f, 0.0f, 0.0f } // Initialize engine thrusts to 0
 {}
 
-void Rocket::applyThrust(std::array<float, 4> thrustValues, float deltaTime) {
+// Use const std::array<float, 5>& for the thrustValues parameter
+void Rocket::applyThrust(const std::array<float, 5>& thrustValues, float deltaTime) {
     if (fuel > 0.0f) {
         // Calculate total thrust from all engines
         float totalThrust = 0.0f;
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 5; i++) {
             engineThrust[i] = thrustValues[i];
             totalThrust += engineThrust[i];
         }
