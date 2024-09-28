@@ -22,12 +22,30 @@ std::array<float, 5> thrustLevels = { 100.0f, 100.0f, 100.0f, 100.0f, 100.0f }; 
 bool isLiftoffInitiated = false;
 bool isLiftoffComplete = false;
 float liftoffStartTime = 0.0f;
+float pitch = 65.42f;
+float yaw = -120.0f;
+float roll = 0.0f;
+
+float gimbalPitch = -0.004f;
+float gimbalYaw = 0.0f;
+float gimbalAbsolute = 0.004f;
 
 Rocket rocket;
+
 
 // Progress state variables
 enum ProgressState { LOAD_FUEL, COUNTDOWN, START_ENGINES, LIFTOFF };
 ProgressState currentProgress = LOAD_FUEL;
+
+void RenderAdditionalWindow() {
+    ImGui::SetNextWindowPos(ImVec2(2000, 0), ImGuiCond_Once);  // Set the position to the right of the control panel
+    ImGui::SetNextWindowSize(ImVec2(660, 718), ImGuiCond_Once); // Set the default size of the new window
+    ImGui::Begin("Rocket Simulation");  // Create a new ImGui window named "Additional Panel"
+
+    
+
+    ImGui::End();
+}
 
 // Function to draw vertical bar
 void DrawVerticalBar(float level, ImVec2 pos, ImVec2 size, ImU32 color) {
@@ -75,6 +93,58 @@ void RenderFlightProgressPanel() {
 
     ImGui::EndChild();
 }
+
+void RenderStructuralDataPanel() {
+    ImGui::BeginChild("StructuralPanel", ImVec2(0, 250), true, ImGuiWindowFlags_NoDecoration);
+    ImGui::Text("Structural Data");
+
+    float propellantMass = currentMass - DRY_MASS; // Calculate propellant mass
+    float totalMass = currentMass;                 // Total mass (dry mass + propellant mass)
+    float centerGravity = 33.92f;                  // Mock value for Center of Gravity
+    float momentInertia = 57648833.0f;             // Mock value for Moment of Inertia
+
+    // Render structural data similar to the image you shared
+    ImGui::Text("Total Mass (WOP): %.2f kg", DRY_MASS);
+    ImGui::Text("Propellant Mass: %.2f kg", propellantMass);
+    ImGui::Text("Total Mass: %.2f kg", totalMass);
+    ImGui::Text("Center of Gravity: %.2f m", centerGravity);
+    ImGui::Text("Moment of Inertia: %.2f kg·m^2", momentInertia);
+
+    ImGui::EndChild();
+}
+void RenderSpatialPositioningPanel(const Rocket& rocket) {
+    ImGui::BeginChild("SpatialPositioningPanel", ImVec2(250, 300), true, ImGuiWindowFlags_NoDecoration);
+    ImGui::Text("Spatial Positioning");
+
+    ImGui::Separator();
+    ImGui::Text("Position:");
+    ImGui::Text("  X = %.1f m", rocket.position.x);
+    ImGui::Text("  Y = %.1f m", rocket.position.y);
+    ImGui::Text("  Z = %.1f m", rocket.position.z);
+
+    ImGui::Separator();
+    ImGui::Text("Attitude:");
+    ImGui::Text("  Pitch = %.2f °", pitch);
+    ImGui::SameLine(150);
+    ImGui::Text("Planned: %.2f °", pitch);  // Mock Planned Value
+
+    ImGui::Text("  Yaw = %.2f °", yaw);
+    ImGui::SameLine(150);
+    ImGui::Text("Planned: %.2f °", yaw);  // Mock Planned Value
+
+    ImGui::Text("  Roll = %.2f °", roll);
+    ImGui::SameLine(150);
+    ImGui::Text("Planned: %.2f °", roll);  // Mock Planned Value
+
+    ImGui::Separator();
+    ImGui::Text("Vector thrust (Gimbal):");
+    ImGui::Text("  Pitch = %.3f °", gimbalPitch);
+    ImGui::Text("  Yaw = %.3f °", gimbalYaw);
+    ImGui::Text("  Absolute = %.3f °", gimbalAbsolute);
+
+    ImGui::EndChild();
+}
+
 
 int main() {
     if (!glfwInit()) {
@@ -248,7 +318,15 @@ int main() {
         // New Flight Progress Panel
         RenderFlightProgressPanel();
 
+        ImGui::SetCursorPosY(215); // Set only the Y position
+        RenderStructuralDataPanel();
+
+       
+        
+        RenderSpatialPositioningPanel(rocket);
         ImGui::NextColumn();
+        
+        
 
         // Progress Panel
         ImGui::BeginChild("ProgressPanel", ImVec2(0, 500), true, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground);
@@ -276,6 +354,8 @@ int main() {
         ImGui::Columns(1);
 
         ImGui::End();  // End the main window
+
+        RenderAdditionalWindow();
 
         // Render the UI
         ImGui::Render();
